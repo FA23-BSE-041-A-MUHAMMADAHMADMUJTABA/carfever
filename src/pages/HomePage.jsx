@@ -96,22 +96,61 @@ export default function HomePage() {
       const imgRatio = imgWidth / imgHeight;
       const canvasRatio = canvasWidth / canvasHeight;
 
-      let drawWidth, drawHeight, drawX, drawY;
+      const isMobile = window.innerWidth <= 768;
 
-      // Cover-fit strategy to keep the video immersive and fill the screen entirely
-      if (imgRatio > canvasRatio) {
-        drawWidth = canvasHeight * imgRatio;
-        drawHeight = canvasHeight;
-        drawX = (canvasWidth - drawWidth) / 2;
-        drawY = 0;
+      if (isMobile) {
+        // Calculate COVER dimensions (for ambient backdrop)
+        let coverWidth, coverHeight, coverX, coverY;
+        if (imgRatio > canvasRatio) {
+          coverWidth = canvasHeight * imgRatio;
+          coverHeight = canvasHeight;
+          coverX = (canvasWidth - coverWidth) / 2;
+          coverY = 0;
+        } else {
+          coverWidth = canvasWidth;
+          coverHeight = canvasWidth / imgRatio;
+          coverX = 0;
+          coverY = (canvasHeight - coverHeight) / 2;
+        }
+
+        // Calculate CONTAIN dimensions (for uncropped foreground)
+        let containWidth, containHeight, containX, containY;
+        if (imgRatio > canvasRatio) {
+          containWidth = canvasWidth;
+          containHeight = canvasWidth / imgRatio;
+          containX = 0;
+          containY = (canvasHeight - containHeight) / 2;
+        } else {
+          containWidth = canvasHeight * imgRatio;
+          containHeight = canvasHeight;
+          containX = (canvasWidth - containWidth) / 2;
+          containY = 0;
+        }
+
+        // Draw blurred ambient backdrop first to fill vertical screen
+        ctx.save();
+        ctx.filter = 'blur(40px) brightness(0.3)';
+        ctx.drawImage(img, coverX, coverY, coverWidth, coverHeight);
+        ctx.restore();
+
+        // Draw crisp uncropped foreground on top
+        ctx.drawImage(img, containX, containY, containWidth, containHeight);
       } else {
-        drawWidth = canvasWidth;
-        drawHeight = canvasWidth / imgRatio;
-        drawX = 0;
-        drawY = (canvasHeight - drawHeight) / 2;
+        // Desktop: Standard cover-fit (fills entire viewport, no blur)
+        let drawWidth, drawHeight, drawX, drawY;
+        if (imgRatio > canvasRatio) {
+          drawWidth = canvasHeight * imgRatio;
+          drawHeight = canvasHeight;
+          drawX = (canvasWidth - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          drawWidth = canvasWidth;
+          drawHeight = canvasWidth / imgRatio;
+          drawX = 0;
+          drawY = (canvasHeight - drawHeight) / 2;
+        }
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       }
-
-      ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
     }
   };
 
