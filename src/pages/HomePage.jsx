@@ -97,34 +97,18 @@ export default function HomePage() {
       const canvasRatio = canvasWidth / canvasHeight;
 
       let drawWidth, drawHeight, drawX, drawY;
-      const isMobile = window.innerWidth <= 768;
 
-      if (isMobile) {
-        // Mobile contain-fit strategy so that the entire car frames are visible on portrait screens
-        if (imgRatio > canvasRatio) {
-          drawWidth = canvasWidth;
-          drawHeight = canvasWidth / imgRatio;
-          drawX = 0;
-          drawY = (canvasHeight - drawHeight) / 2;
-        } else {
-          drawWidth = canvasHeight * imgRatio;
-          drawHeight = canvasHeight;
-          drawX = (canvasWidth - drawWidth) / 2;
-          drawY = 0;
-        }
+      // Cover-fit strategy to keep the video immersive and fill the screen entirely
+      if (imgRatio > canvasRatio) {
+        drawWidth = canvasHeight * imgRatio;
+        drawHeight = canvasHeight;
+        drawX = (canvasWidth - drawWidth) / 2;
+        drawY = 0;
       } else {
-        // Desktop cover-fit strategy to keep the video immersive
-        if (imgRatio > canvasRatio) {
-          drawWidth = canvasHeight * imgRatio;
-          drawHeight = canvasHeight;
-          drawX = (canvasWidth - drawWidth) / 2;
-          drawY = 0;
-        } else {
-          drawWidth = canvasWidth;
-          drawHeight = canvasWidth / imgRatio;
-          drawX = 0;
-          drawY = (canvasHeight - drawHeight) / 2;
-        }
+        drawWidth = canvasWidth;
+        drawHeight = canvasWidth / imgRatio;
+        drawX = 0;
+        drawY = (canvasHeight - drawHeight) / 2;
       }
 
       ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);

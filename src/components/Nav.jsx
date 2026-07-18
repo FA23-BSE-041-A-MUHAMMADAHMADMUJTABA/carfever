@@ -42,7 +42,7 @@ export default function Nav() {
         <span>car<em>Fever</em></span>
       </Link>
 
-      <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+      <button className={`mobile-menu-btn${mobileOpen ? ' open' : ''}`} onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
         <span /><span /><span />
       </button>
 
@@ -53,6 +53,22 @@ export default function Nav() {
           <li><NavLink to={getDashLink()} onClick={() => setMobileOpen(false)}>Dashboard</NavLink></li>
         )}
         {!user && <li><NavLink to="/admin/login" onClick={() => setMobileOpen(false)}>Admin</NavLink></li>}
+        
+        {/* Mobile menu only action items */}
+        <li className="mobile-only-actions">
+          {user ? (
+            <div className="nav-user-menu-mobile">
+              <div className="nav-user-avatar">{user.name.charAt(0)}</div>
+              <span className="nav-user-name">{user.name}</span>
+              <button className="nav-logout-btn" onClick={() => { logout(); setMobileOpen(false); navigate('/'); }}>Logout</button>
+            </div>
+          ) : (
+            <div className="nav-mobile-buttons">
+              <NavLink to="/login" onClick={() => setMobileOpen(false)} className="nav-login-btn">Sign In</NavLink>
+              <NavLink to="/register" onClick={() => setMobileOpen(false)} className="nav-sell-btn">Sell Your Car</NavLink>
+            </div>
+          )}
+        </li>
       </ul>
 
       <div className="nav-actions">

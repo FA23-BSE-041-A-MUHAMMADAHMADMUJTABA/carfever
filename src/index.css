@@ -351,21 +351,45 @@ textarea {
 .mobile-menu-btn {
   display: none;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   padding: 8px;
-  z-index: 101;
+  z-index: 105;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
 }
 
 .mobile-menu-btn span {
-  width: 20px;
+  width: 22px;
   height: 2px;
   background: var(--mm-white);
   border-radius: 2px;
-  transition: var(--transition);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav.scrolled .mobile-menu-btn span {
   background: var(--mm-ink);
+}
+
+/* Hamburger to X animation */
+.mobile-menu-btn.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+  background: var(--mm-white) !important;
+}
+
+.mobile-menu-btn.open span:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.mobile-menu-btn.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+  background: var(--mm-white) !important;
+}
+
+.mobile-only-actions {
+  display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3037,6 +3061,49 @@ textarea {
   .nav-links.open li a {
     color: var(--mm-white) !important;
     font-size: 1.2rem;
+  }
+
+  .mobile-only-actions {
+    display: block;
+    width: 80%;
+    max-width: 300px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-user-menu-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-mobile-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .nav-mobile-buttons a {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .nav-mobile-buttons .nav-login-btn {
+    background: transparent;
+    color: var(--mm-white) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-mobile-buttons .nav-sell-btn {
+    background: var(--h-amber);
+    color: var(--h-black) !important;
   }
 
   .video-hero { height: 200vh; }
