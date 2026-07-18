@@ -24,9 +24,14 @@ export default function HomePage() {
   const navigate = useNavigate();
   const heroRef = useRef(null);
   const audioRef = useRef(null);
+  const canvasRef = useRef(null);
   const [heroProgress, setHeroProgress] = useState(0);
   const [currentFrame, setCurrentFrame] = useState(1);
   const [searchTab, setSearchTab] = useState(0);
+
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const imagesRef = useRef([]);
 
   const targetProgress = useRef(0);
   const currentProgress = useRef(0);
@@ -35,11 +40,112 @@ export default function HomePage() {
   // Preload all frames on mount
   useEffect(() => {
     const totalFrames = 80;
+    let loaded = 0;
+    const tempImages = [];
+
+    const handleLoad = () => {
+      loaded++;
+      const progress = Math.round((loaded / totalFrames) * 100);
+      setLoadProgress(progress);
+      if (loaded === totalFrames) {
+        setImagesLoaded(true);
+      }
+    };
+
+    const handleError = () => {
+      loaded++;
+      const progress = Math.round((loaded / totalFrames) * 100);
+      setLoadProgress(progress);
+      if (loaded === totalFrames) {
+        setImagesLoaded(true);
+      }
+    };
+
     for (let i = 1; i <= totalFrames; i++) {
       const img = new Image();
       img.src = `/hero-frames/frame_${String(i).padStart(3, '0')}.jpg`;
+      img.onload = handleLoad;
+      img.onerror = handleError;
+      tempImages.push(img);
     }
+    imagesRef.current = tempImages;
   }, []);
+
+  // Canvas-based hardware accelerated drawing function
+  const drawFrame = (frameIndex) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = imagesRef.current[frameIndex - 1];
+    if (img && (img.complete || img.naturalWidth > 0)) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      const imgRatio = imgWidth / imgHeight;
+      const canvasRatio = canvasWidth / canvasHeight;
+
+      let drawWidth, drawHeight, drawX, drawY;
+      const isMobile = window.innerWidth <= 768;
+
+      if (isMobile) {
+        // Mobile contain-fit strategy so that the entire car frames are visible on portrait screens
+        if (imgRatio > canvasRatio) {
+          drawWidth = canvasWidth;
+          drawHeight = canvasWidth / imgRatio;
+          drawX = 0;
+          drawY = (canvasHeight - drawHeight) / 2;
+        } else {
+          drawWidth = canvasHeight * imgRatio;
+          drawHeight = canvasHeight;
+          drawX = (canvasWidth - drawWidth) / 2;
+          drawY = 0;
+        }
+      } else {
+        // Desktop cover-fit strategy to keep the video immersive
+        if (imgRatio > canvasRatio) {
+          drawWidth = canvasHeight * imgRatio;
+          drawHeight = canvasHeight;
+          drawX = (canvasWidth - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          drawWidth = canvasWidth;
+          drawHeight = canvasWidth / imgRatio;
+          drawX = 0;
+          drawY = (canvasHeight - drawHeight) / 2;
+        }
+      }
+
+      ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+    }
+  };
+
+  useEffect(() => {
+    if (imagesLoaded) {
+      drawFrame(currentFrame);
+    }
+  }, [currentFrame, imagesLoaded]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (imagesLoaded) {
+        drawFrame(currentFrame);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentFrame, imagesLoaded]);
 
   /* Scroll-driven frame animation + LERP + Audio Sync */
   useEffect(() => {
@@ -187,12 +293,18 @@ export default function HomePage() {
       {/* ── VIDEO HERO ─────────────────────────────────── */}
       <section className="hero video-hero" ref={heroRef}>
         <div className="video-hero-sticky">
-          <img 
-            src={`/hero-frames/frame_${String(currentFrame).padStart(3, '0')}.jpg`} 
-            alt="Car Reveal" 
-            className="hero-video" 
-            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-          />
+          {!imagesLoaded && (
+            <div className="hero-loader-overlay">
+              <div className="hero-loader-content">
+                <div className="hero-loader-spinner"></div>
+                <div className="hero-loader-text">Loading Experience {loadProgress}%</div>
+                <div className="hero-loader-bar-container">
+                  <div className="hero-loader-bar" style={{ width: `${loadProgress}%` }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          <canvas ref={canvasRef} className="hero-video" style={{ display: imagesLoaded ? 'block' : 'none' }} />
           <audio ref={audioRef} src="/hero-audio.mp3" preload="auto" loop />
           <div className="hero-video-overlay" />
 
